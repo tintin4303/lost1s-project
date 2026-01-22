@@ -62,7 +62,10 @@ export function PortalNav() {
                         <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => signOut({ callbackUrl: '/' })}
+                            onClick={async () => {
+                                await signOut({ redirect: false });
+                                window.location.href = '/';
+                            }}
                             className="flex items-center gap-2"
                         >
                             <LogOut className="w-4 h-4" />

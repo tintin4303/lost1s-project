@@ -30,10 +30,21 @@ export default function LoginPage() {
 
             if (result?.error) {
                 setError(result.error);
-            } else {
-                // Redirect based on user role (will be handled by middleware later)
-                router.push('/');
-                router.refresh();
+            } else if (result?.ok) {
+                // Fetch the session to get user role
+                const sessionResponse = await fetch('/api/auth/session');
+                const session = await sessionResponse.json();
+
+                // Redirect based on role
+                if (session?.user?.role === 'ADOPTER') {
+                    window.location.href = '/adopter/discover';
+                } else if (session?.user?.role === 'STAFF') {
+                    window.location.href = '/staff/dashboard';
+                } else if (session?.user?.role === 'DONOR') {
+                    window.location.href = '/donor/dashboard';
+                } else {
+                    window.location.href = '/';
+                }
             }
         } catch (err) {
             setError('An unexpected error occurred');

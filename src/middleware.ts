@@ -21,6 +21,7 @@ export async function middleware(request: NextRequest) {
     if (token && (pathname === '/login' || pathname === '/register')) {
         const role = token.role as string;
 
+        // Redirect from auth pages to appropriate portal
         if (role === 'ADOPTER') {
             return NextResponse.redirect(new URL('/adopter/discover', request.url));
         } else if (role === 'STAFF') {
@@ -33,14 +34,18 @@ export async function middleware(request: NextRequest) {
     // Role-based access control for portal routes
     if (token) {
         const role = token.role as string;
+        console.log(`[Middleware] Path: ${pathname}, User Role: ${role}`);
 
         if (pathname.startsWith('/adopter') && role !== 'ADOPTER') {
+            console.log(`[Middleware] BLOCKING: ${role} trying to access /adopter`);
             return NextResponse.redirect(new URL('/', request.url));
         }
         if (pathname.startsWith('/staff') && role !== 'STAFF') {
+            console.log(`[Middleware] BLOCKING: ${role} trying to access /staff`);
             return NextResponse.redirect(new URL('/', request.url));
         }
         if (pathname.startsWith('/donor') && role !== 'DONOR') {
+            console.log(`[Middleware] BLOCKING: ${role} trying to access /donor`);
             return NextResponse.redirect(new URL('/', request.url));
         }
     }
@@ -50,6 +55,13 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
     matcher: [
+        /*
+         * Match all request paths except:
+         * - api (API routes)
+         * - _next/static (static files)
+         * - _next/image (image optimization files)
+         * - favicon.ico (favicon file)
+         */
         '/((?!api|_next/static|_next/image|favicon.ico).*)',
     ],
 };

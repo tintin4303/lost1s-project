@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/src/components/ui/Card';
@@ -51,8 +52,21 @@ export default function RegisterPage() {
                 return;
             }
 
-            // Redirect to login page after successful registration
-            router.push('/login?registered=true');
+            // Automatically sign in the user after successful registration
+            const signInResult = await signIn('credentials', {
+                email: formData.email,
+                password: formData.password,
+                redirect: false,
+            });
+
+            if (signInResult?.error) {
+                // Registration succeeded but auto-login failed, redirect to login
+                router.push('/login?registered=true');
+            } else {
+                // Both registration and login succeeded, redirect to home
+                router.push('/');
+                router.refresh();
+            }
         } catch (err) {
             setError('An unexpected error occurred');
         } finally {
