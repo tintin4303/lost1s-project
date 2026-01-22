@@ -53,7 +53,7 @@ export default function Home() {
             {isLoggedIn ? (
               <Link
                 href={portalUrl}
-                className="inline-flex items-center justify-center rounded-md bg-amber-600 px-8 py-3 text-lg font-medium text-white hover:bg-amber-700 transition-colors"
+                className="inline-flex items-center justify-center rounded-md bg-amber-600 px-8 py-3 text-lg font-medium text-white hover:bg-amber-700 transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl"
               >
                 Go to My Portal
               </Link>
@@ -61,13 +61,13 @@ export default function Home() {
               <>
                 <Link
                   href="/register"
-                  className="inline-flex items-center justify-center rounded-md bg-amber-600 px-8 py-3 text-lg font-medium text-white hover:bg-amber-700 transition-colors"
+                  className="inline-flex items-center justify-center rounded-md bg-amber-600 px-8 py-3 text-lg font-medium text-white hover:bg-amber-700 transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl"
                 >
                   Get Started
                 </Link>
                 <Link
                   href="/login"
-                  className="inline-flex items-center justify-center rounded-md border-2 border-amber-900 bg-transparent px-8 py-3 text-lg font-medium text-amber-900 hover:bg-amber-50 transition-colors"
+                  className="inline-flex items-center justify-center rounded-md border-2 border-amber-900 bg-transparent px-8 py-3 text-lg font-medium text-amber-900 hover:bg-amber-50 transition-all duration-200 hover:scale-105 active:scale-95"
                 >
                   Sign In
                 </Link>
@@ -78,7 +78,7 @@ export default function Home() {
 
         {/* Features Section */}
         <div className="mt-24 grid md:grid-cols-3 gap-8">
-          <div className="bg-white rounded-lg p-8 shadow-md border border-amber-200">
+          <div className="bg-white rounded-lg p-8 shadow-md border border-amber-200 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
             <div className="flex justify-center mb-4">
               <Heart className="w-12 h-12 text-amber-600" />
             </div>
@@ -90,7 +90,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="bg-white rounded-lg p-8 shadow-md border border-amber-200">
+          <div className="bg-white rounded-lg p-8 shadow-md border border-amber-200 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
             <div className="flex justify-center mb-4">
               <Users className="w-12 h-12 text-amber-600" />
             </div>
@@ -102,7 +102,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="bg-white rounded-lg p-8 shadow-md border border-amber-200">
+          <div className="bg-white rounded-lg p-8 shadow-md border border-amber-200 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
             <div className="flex justify-center mb-4">
               <HomeIcon className="w-12 h-12 text-amber-600" />
             </div>
