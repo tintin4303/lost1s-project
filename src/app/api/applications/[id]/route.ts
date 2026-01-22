@@ -26,8 +26,8 @@ export async function PATCH(
             where: { id },
             data: {
                 status,
-                reviewNotes: notes,
-                reviewedAt: new Date(),
+                // reviewNotes: notes, // Field deleted from schema
+                // reviewedAt: new Date(), // Field deleted from schema
             },
             include: {
                 pet: true,
