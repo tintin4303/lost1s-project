@@ -272,7 +272,7 @@ export default function PetDetailPage({ params }: { params: Promise<{ id: string
                                                 className="flex-1"
                                                 disabled={submitting}
                                             >
-                                                {submitting ? 'Submitting...' : 'Submit Application'}
+                                                {submitting ? 'Submitting...' : 'Submit'}
                                             </Button>
                                         </div>
                                     </form>
