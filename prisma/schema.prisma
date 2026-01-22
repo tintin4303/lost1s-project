@@ -1,5 +1,6 @@
 // Lost1s Pet Shelter Management System
 // Database Schema for Adopters, Staff, and Donors
+// Simplified schema without enums for cleaner ERD presentation
 
 generator client {
   provider = "prisma-client-js"
@@ -11,56 +12,56 @@ datasource db {
 }
 
 model Pet {
-  id          String   @id @default(cuid())
-  name        String
-  species     Species
-  breed       String?
-  age         AgeGroup
-  vaccinated  Boolean  @default(false)
-  spayed      Boolean  @default(false)
-  status      PetStatus @default(AVAILABLE)
-  intakeDate  DateTime @default(now())
-  imageUrl    String?
-  description String?
+  id           String        @id @default(cuid())
+  name         String
+  species      String        // e.g., "DOG", "CAT", "BIRD", "RABBIT", "OTHER"
+  breed        String?
+  age          Int           // Age in years
+  vaccinated   Boolean       @default(false)
+  spayed       Boolean       @default(false)
+  status       String        @default("AVAILABLE") // e.g., "AVAILABLE", "ADOPTED", "PENDING"
+  intakeDate   DateTime      @default(now())
+  imageUrl     String?
+  description  String?
   applications Application[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 
-  @@index([status])
   @@index([species])
+  @@index([status])
 }
 
 model User {
-  id            String   @id @default(cuid())
+  id            String        @id @default(cuid())
   name          String
-  email         String   @unique
+  email         String        @unique
   password      String
-  role          UserRole @default(ADOPTER)
-  isBlacklisted Boolean  @default(false)
+  role          String        @default("ADOPTER") // e.g., "ADOPTER", "STAFF", "DONOR"
+  isBlacklisted Boolean       @default(false)
   applications  Application[]
   donations     Donation[]
   securityLogs  SecurityLog[]
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 
   @@index([email])
   @@index([role])
 }
 
 model Application {
-  id            String   @id @default(cuid())
-  pet           Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
-  petId         String
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId        String
-  housingType   String
-  hasYard       Boolean
-  lifestyle     String
-  annualIncome  Float
-  status        ApplicationStatus @default(REVIEW)
-  appointments  Appointment[]
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id           String        @id @default(cuid())
+  pet          Pet           @relation(fields: [petId], references: [id], onDelete: Cascade)
+  petId        String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  reason       String        // Why they want to adopt
+  experience   String        // Pet experience
+  housingType  String        // e.g., "HOUSE", "APARTMENT", "CONDO", "OTHER"
+  hasYard      Boolean       // Has a yard
+  status       String        @default("REVIEW") // e.g., "REVIEW", "APPROVED", "REJECTED"
+  appointments Appointment[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 
   @@index([petId])
   @@index([userId])
@@ -68,26 +69,26 @@ model Application {
 }
 
 model Appointment {
-  id            String   @id @default(cuid())
+  id            String      @id @default(cuid())
   application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
   applicationId String
   date          DateTime
   timeSlot      String
   location      String
-  createdAt     DateTime @default(now())
+  createdAt     DateTime    @default(now())
 
   @@unique([date, timeSlot, location])
   @@index([applicationId])
 }
 
 model Donation {
-  id         String   @id @default(cuid())
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId     String
-  amount     Float
-  frequency  DonationFrequency
-  type       DonationType
-  createdAt  DateTime @default(now())
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  amount    Float
+  type      String   // e.g., "FOOD", "MEDICAL", "GENERAL"
+  frequency String   // e.g., "ONE_TIME", "WEEKLY", "MONTHLY"
+  createdAt DateTime @default(now())
 
   @@index([userId])
   @@index([createdAt])
@@ -103,50 +104,4 @@ model SecurityLog {
 
   @@index([userId])
   @@index([createdAt])
-}
-
-// ============================================
-// ENUMS
-// ============================================
-
-enum Species {
-  DOG
-  CAT
-  OTHER
-}
-
-enum AgeGroup {
-  PUPPY
-  ADULT
-  SENIOR
-}
-
-enum PetStatus {
-  AVAILABLE
-  PENDING
-  ADOPTED
-}
-
-enum UserRole {
-  ADOPTER
-  STAFF
-  DONOR
-}
-
-enum ApplicationStatus {
-  REVIEW
-  INTERVIEW
-  FINALIZED
-}
-
-enum DonationFrequency {
-  ONE_TIME
-  WEEKLY
-  MONTHLY
-}
-
-enum DonationType {
-  FOOD
-  MEDICAL
-  GENERAL
 }

@@ -22,9 +22,26 @@ export default function Home() {
   const isLoggedIn = !!session;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-amber-50 to-amber-100">
+    <div className="min-h-screen bg-gradient-to-b from-amber-50 to-amber-100 relative">
+      {/* Session Header */}
+      {isLoggedIn && session?.user && (
+        <div className="absolute top-0 left-0 w-full p-4 z-10">
+          <div className="container mx-auto flex justify-end">
+            <div className="bg-white/80 backdrop-blur-sm px-5 py-2 rounded-full border border-amber-200 shadow-sm flex items-center gap-3 hover:shadow-md transition-shadow duration-200">
+              <p className="text-amber-900 text-sm">
+                Hello, <span className="font-semibold">{session.user.name}</span>
+              </p>
+              <span className="h-4 w-px bg-amber-200"></span>
+              <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wide bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100">
+                {session.user.role}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Hero Section */}
-      <div className="container mx-auto px-4 py-16">
+      <div className="container mx-auto px-4 py-16 pt-32">
         <div className="text-center space-y-8">
           <h1 className="text-6xl font-bold text-amber-900 tracking-tight">
             Lost1s

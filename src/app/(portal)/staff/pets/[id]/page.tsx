@@ -3,7 +3,7 @@
 import { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { PortalNav } from '@/src/components/layout/PortalNav';
-import { Heart, Calendar, Check, X, ArrowLeft, Edit, Save } from 'lucide-react';
+import { Heart, Calendar, Check, ArrowLeft, Edit, Save, Eye } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/src/components/ui/Card';
 import { Button } from '@/src/components/ui/Button';
 import { Input } from '@/src/components/ui/Input';
@@ -15,7 +15,7 @@ interface Pet {
     name: string;
     species: string;
     breed: string | null;
-    age: string;
+    age: number;
     vaccinated: boolean;
     spayed: boolean;
     status: string;
@@ -41,11 +41,14 @@ export default function StaffPetDetailPage({ params }: { params: Promise<{ id: s
     const [editing, setEditing] = useState(false);
     const [saving, setSaving] = useState(false);
 
+    const [uploading, setUploading] = useState(false);
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const [ageInput, setAgeInput] = useState('1');
     const [formData, setFormData] = useState({
         name: '',
         species: 'DOG',
         breed: '',
-        age: 'ADULT',
+        age: 1,
         vaccinated: false,
         spayed: false,
         status: 'AVAILABLE',
@@ -64,6 +67,7 @@ export default function StaffPetDetailPage({ params }: { params: Promise<{ id: s
             setPet(data.pet);
 
             if (data.pet) {
+                setAgeInput(String(data.pet.age));
                 setFormData({
                     name: data.pet.name,
                     species: data.pet.species,
@@ -149,41 +153,32 @@ export default function StaffPetDetailPage({ params }: { params: Promise<{ id: s
                             )}
                         </div>
                         <CardHeader>
-                            <div className="flex items-center justify-between">
-                                <div className="flex-1">
-                                    {editing ? (
-                                        <Input
-                                            value={formData.name}
-                                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                            className="text-3xl font-bold mb-2"
-                                        />
-                                    ) : (
-                                        <CardTitle className="text-3xl">{pet.name}</CardTitle>
-                                    )}
+                            {editing ? (
+                                <div className="mb-4">
+                                    <Input
+                                        value={formData.name}
+                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                        className="text-xl font-bold"
+                                        placeholder="Pet name"
+                                    />
                                 </div>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => editing ? handleSave() : setEditing(true)}
-                                    disabled={saving}
-                                >
-                                    {editing ? (
-                                        <>
-                                            <Save className="w-4 h-4 mr-1" />
-                                            {saving ? 'Saving...' : 'Save'}
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Edit className="w-4 h-4 mr-1" />
-                                            Edit
-                                        </>
-                                    )}
-                                </Button>
-                            </div>
-                            {!editing && (
-                                <CardDescription className="text-lg">
-                                    {pet.species} • {pet.breed || 'Mixed Breed'} • {pet.age}
-                                </CardDescription>
+                            ) : (
+                                <div className="flex items-center justify-between">
+                                    <div className="flex-1">
+                                        <CardTitle className="text-3xl">{pet.name}</CardTitle>
+                                        <CardDescription className="text-lg mt-2">
+                                            {pet.species} • {pet.breed || 'Mixed Breed'} • {pet.age} years old
+                                        </CardDescription>
+                                    </div>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setEditing(true)}
+                                    >
+                                        <Edit className="w-4 h-4 mr-1" />
+                                        Edit
+                                    </Button>
+                                </div>
                             )}
                         </CardHeader>
                         <CardContent className="space-y-4">
@@ -204,17 +199,26 @@ export default function StaffPetDetailPage({ params }: { params: Promise<{ id: s
                                             </select>
                                         </div>
                                         <div>
-                                            <Label>Age Group</Label>
-                                            <select
-                                                value={formData.age}
-                                                onChange={(e) => setFormData({ ...formData, age: e.target.value })}
-                                                className="flex h-10 w-full rounded-md border border-amber-900/20 bg-white px-3 py-2 text-sm"
-                                            >
-                                                <option value="PUPPY_KITTEN">Puppy/Kitten</option>
-                                                <option value="YOUNG">Young</option>
-                                                <option value="ADULT">Adult</option>
-                                                <option value="SENIOR">Senior</option>
-                                            </select>
+                                            <Label>Age (years)</Label>
+                                            <Input
+                                                type="number"
+                                                min="0"
+                                                max="30"
+                                                value={ageInput}
+                                                onChange={(e) => {
+                                                    const value = e.target.value;
+                                                    setAgeInput(value);
+                                                    const numValue = value === '' ? 0 : parseInt(value) || 0;
+                                                    setFormData({ ...formData, age: numValue });
+                                                }}
+                                                onBlur={() => {
+                                                    if (ageInput === '' || parseInt(ageInput) < 0) {
+                                                        setAgeInput('0');
+                                                        setFormData({ ...formData, age: 0 });
+                                                    }
+                                                }}
+                                                onWheel={(e) => e.currentTarget.blur()}
+                                            />
                                         </div>
                                     </div>
 
@@ -262,12 +266,55 @@ export default function StaffPetDetailPage({ params }: { params: Promise<{ id: s
                                     </div>
 
                                     <div>
-                                        <Label>Image URL</Label>
-                                        <Input
-                                            value={formData.imageUrl}
-                                            onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                                            placeholder="https://example.com/image.jpg"
+                                        <Label>Pet Image</Label>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={async (e) => {
+                                                const file = e.target.files?.[0];
+                                                if (!file) return;
+
+                                                const reader = new FileReader();
+                                                reader.onloadend = () => {
+                                                    setImagePreview(reader.result as string);
+                                                };
+                                                reader.readAsDataURL(file);
+
+                                                setUploading(true);
+                                                try {
+                                                    const uploadFormData = new FormData();
+                                                    uploadFormData.append('file', file);
+
+                                                    const response = await fetch('/api/upload', {
+                                                        method: 'POST',
+                                                        body: uploadFormData,
+                                                    });
+
+                                                    const data = await response.json();
+                                                    if (response.ok) {
+                                                        setFormData(prev => ({ ...prev, imageUrl: data.url }));
+                                                    }
+                                                } catch (error) {
+                                                    console.error('Upload error:', error);
+                                                } finally {
+                                                    setUploading(false);
+                                                }
+                                            }}
+                                            className="w-full rounded-md border border-gray-300 px-3 py-2"
+                                            disabled={uploading}
                                         />
+                                        {uploading && (
+                                            <p className="text-sm text-amber-600 mt-1">Uploading image...</p>
+                                        )}
+                                        {(imagePreview || formData.imageUrl) && (
+                                            <div className="mt-2">
+                                                <img
+                                                    src={imagePreview || formData.imageUrl}
+                                                    alt="Preview"
+                                                    className="w-32 h-32 object-cover rounded-md border border-gray-300"
+                                                />
+                                            </div>
+                                        )}
                                     </div>
 
                                     <div>
@@ -280,16 +327,28 @@ export default function StaffPetDetailPage({ params }: { params: Promise<{ id: s
                                         />
                                     </div>
 
-                                    <Button
-                                        variant="outline"
-                                        className="w-full"
-                                        onClick={() => {
-                                            setEditing(false);
-                                            fetchPet();
-                                        }}
-                                    >
-                                        Cancel
-                                    </Button>
+                                    <div className="flex gap-3">
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            onClick={() => {
+                                                setEditing(false);
+                                                fetchPet();
+                                            }}
+                                            disabled={saving}
+                                            className="flex-1"
+                                        >
+                                            Cancel
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            onClick={handleSave}
+                                            disabled={saving}
+                                            className="flex-1"
+                                        >
+                                            {saving ? 'Saving...' : 'Save Changes'}
+                                        </Button>
+                                    </div>
                                 </div>
                             ) : (
                                 <>
@@ -343,8 +402,8 @@ export default function StaffPetDetailPage({ params }: { params: Promise<{ id: s
                                                     <p className="text-sm text-gray-600">{app.user.email}</p>
                                                 </div>
                                                 <span className={`px-2 py-1 rounded text-xs ${app.status === 'PENDING' ? 'bg-amber-100 text-amber-800' :
-                                                        app.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
-                                                            'bg-red-100 text-red-800'
+                                                    app.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
+                                                        'bg-red-100 text-red-800'
                                                     }`}>
                                                     {app.status}
                                                 </span>

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { PortalNav } from '@/src/components/layout/PortalNav';
-import { Heart, Plus, Edit, Trash2, Calendar } from 'lucide-react';
+import { Heart, Plus, Edit, Trash2, Calendar, Eye } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/src/components/ui/Card';
 import { Button } from '@/src/components/ui/Button';
 import Link from 'next/link';
@@ -30,6 +30,21 @@ export default function StaffPetsPage() {
     const [pets, setPets] = useState<Pet[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('ALL');
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+    const [uploading, setUploading] = useState(false);
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const [ageInput, setAgeInput] = useState('1');
+    const [formData, setFormData] = useState({
+        name: '',
+        species: 'DOG' as 'DOG' | 'CAT' | 'BIRD' | 'RABBIT' | 'OTHER',
+        breed: '',
+        age: 1,
+        vaccinated: false,
+        spayed: false,
+        description: '',
+        imageUrl: '',
+    });
 
     useEffect(() => {
         fetchPets();
@@ -48,6 +63,73 @@ export default function StaffPetsPage() {
             console.error('Error fetching pets:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Show preview
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setImagePreview(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+
+        // Upload to Cloudinary
+        setUploading(true);
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const response = await fetch('/api/upload', {
+                method: 'POST',
+                body: formData,
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                setFormData(prev => ({ ...prev, imageUrl: data.url }));
+            }
+        } catch (error) {
+            console.error('Upload error:', error);
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setSubmitting(true);
+
+        try {
+            const response = await fetch('/api/pets', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData),
+            });
+
+            if (response.ok) {
+                setShowAddModal(false);
+                setImagePreview(null);
+                setAgeInput('1');
+                setFormData({
+                    name: '',
+                    species: 'DOG',
+                    breed: '',
+                    age: 1,
+                    vaccinated: false,
+                    spayed: false,
+                    description: '',
+                    imageUrl: '',
+                });
+                fetchPets(); // Refresh list
+            }
+        } catch (error) {
+            console.error('Error adding pet:', error);
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -77,7 +159,7 @@ export default function StaffPetsPage() {
                             View and manage all pets in the shelter
                         </p>
                     </div>
-                    <Button className="flex items-center gap-2">
+                    <Button className="flex items-center gap-2" onClick={() => setShowAddModal(true)}>
                         <Plus className="w-4 h-4" />
                         Add New Pet
                     </Button>
@@ -153,8 +235,8 @@ export default function StaffPetsPage() {
                                             </span>
                                             <Link href={`/staff/pets/${pet.id}`}>
                                                 <Button variant="outline" size="sm">
-                                                    <Edit className="w-4 h-4 mr-1" />
-                                                    View Details
+                                                    <Eye className="w-4 h-4 mr-1" />
+                                                    View
                                                 </Button>
                                             </Link>
                                         </div>
@@ -188,6 +270,145 @@ export default function StaffPetsPage() {
                                 </CardContent>
                             </Card>
                         ))}
+                    </div>
+                )}
+
+                {/* Add Pet Modal */}
+                {showAddModal && (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+                        <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                            <CardHeader>
+                                <CardTitle>Add New Pet</CardTitle>
+                                <CardDescription>Enter the pet information</CardDescription>
+                            </CardHeader>
+                            <form onSubmit={handleSubmit}>
+                                <CardContent className="space-y-4">
+                                    <div className="grid md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium mb-1">Name *</label>
+                                            <input
+                                                type="text"
+                                                className="w-full rounded-md border border-gray-300 px-3 py-2"
+                                                value={formData.name}
+                                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                                required
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium mb-1">Species *</label>
+                                            <select
+                                                className="w-full rounded-md border border-gray-300 px-3 py-2"
+                                                value={formData.species}
+                                                onChange={(e) => setFormData({ ...formData, species: e.target.value as any })}
+                                            >
+                                                <option value="DOG">Dog</option>
+                                                <option value="CAT">Cat</option>
+                                                <option value="BIRD">Bird</option>
+                                                <option value="RABBIT">Rabbit</option>
+                                                <option value="OTHER">Other</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium mb-1">Breed</label>
+                                            <input
+                                                type="text"
+                                                className="w-full rounded-md border border-gray-300 px-3 py-2"
+                                                value={formData.breed}
+                                                onChange={(e) => setFormData({ ...formData, breed: e.target.value })}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium mb-1">Age (years) *</label>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="30"
+                                                className="w-full rounded-md border border-gray-300 px-3 py-2"
+                                                value={ageInput}
+                                                onChange={(e) => {
+                                                    const value = e.target.value;
+                                                    setAgeInput(value);
+                                                    const numValue = value === '' ? 0 : parseInt(value) || 0;
+                                                    setFormData({ ...formData, age: numValue });
+                                                }}
+                                                onBlur={() => {
+                                                    if (ageInput === '' || parseInt(ageInput) < 0) {
+                                                        setAgeInput('0');
+                                                        setFormData({ ...formData, age: 0 });
+                                                    }
+                                                }}
+                                                onWheel={(e) => e.currentTarget.blur()}
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1">Description</label>
+                                        <textarea
+                                            className="w-full rounded-md border border-gray-300 px-3 py-2 min-h-[100px]"
+                                            value={formData.description}
+                                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1">Pet Image</label>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleImageUpload}
+                                            className="w-full rounded-md border border-gray-300 px-3 py-2"
+                                            disabled={uploading}
+                                        />
+                                        {uploading && (
+                                            <p className="text-sm text-amber-600 mt-1">Uploading image...</p>
+                                        )}
+                                        {imagePreview && (
+                                            <div className="mt-2">
+                                                <img
+                                                    src={imagePreview}
+                                                    alt="Preview"
+                                                    className="w-32 h-32 object-cover rounded-md border border-gray-300"
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="flex gap-4">
+                                        <label className="flex items-center gap-2">
+                                            <input
+                                                type="checkbox"
+                                                checked={formData.vaccinated}
+                                                onChange={(e) => setFormData({ ...formData, vaccinated: e.target.checked })}
+                                                className="rounded"
+                                            />
+                                            <span className="text-sm">Vaccinated</span>
+                                        </label>
+                                        <label className="flex items-center gap-2">
+                                            <input
+                                                type="checkbox"
+                                                checked={formData.spayed}
+                                                onChange={(e) => setFormData({ ...formData, spayed: e.target.checked })}
+                                                className="rounded"
+                                            />
+                                            <span className="text-sm">Spayed/Neutered</span>
+                                        </label>
+                                    </div>
+                                </CardContent>
+                                <div className="flex gap-3 p-6 pt-0">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => setShowAddModal(false)}
+                                        disabled={submitting}
+                                        className="flex-1"
+                                    >
+                                        Cancel
+                                    </Button>
+                                    <Button type="submit" disabled={submitting} className="flex-1">
+                                        {submitting ? 'Adding...' : 'Add Pet'}
+                                    </Button>
+                                </div>
+                            </form>
+                        </Card>
                     </div>
                 )}
             </div>

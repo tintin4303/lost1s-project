@@ -11,20 +11,27 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         return (
             <button
                 className={cn(
-                    'inline-flex items-center justify-center rounded-md font-medium transition-colors',
-                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+                    // Base styles
+                    'inline-flex items-center justify-center rounded-md font-medium transition-all duration-200 cursor-pointer',
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2',
                     'disabled:pointer-events-none disabled:opacity-50',
-                    {
-                        'bg-amber-600 text-white hover:bg-amber-700': variant === 'default',
-                        'border border-amber-900 bg-transparent hover:bg-amber-50': variant === 'outline',
-                        'hover:bg-amber-50': variant === 'ghost',
-                        'bg-red-600 text-white hover:bg-red-700': variant === 'destructive',
-                    },
-                    {
-                        'h-10 px-4 py-2': size === 'default',
-                        'h-9 px-3 text-sm': size === 'sm',
-                        'h-11 px-8': size === 'lg',
-                    },
+                    'active:scale-95 transform',
+
+                    // Variants
+                    variant === 'default' &&
+                    'bg-amber-600 text-white shadow-md hover:bg-amber-700 hover:shadow-lg active:shadow-sm',
+                    variant === 'outline' &&
+                    'border-2 border-amber-600 text-amber-900 hover:bg-amber-50 hover:border-amber-700 hover:shadow-md',
+                    variant === 'ghost' &&
+                    'text-amber-900 hover:bg-amber-100 hover:text-amber-800',
+                    variant === 'destructive' &&
+                    'bg-red-600 text-white shadow-md hover:bg-red-700 hover:shadow-lg active:shadow-sm',
+
+                    // Sizes
+                    size === 'default' && 'h-10 px-4 py-2 text-sm',
+                    size === 'sm' && 'h-8 px-3 text-xs',
+                    size === 'lg' && 'h-12 px-6 text-base',
+
                     className
                 )}
                 ref={ref}
@@ -33,6 +40,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         );
     }
 );
+
 Button.displayName = 'Button';
 
 export { Button };

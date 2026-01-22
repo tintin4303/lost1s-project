@@ -25,7 +25,7 @@ export default function DonorDashboardPage() {
                 {/* Donation Stats */}
                 <div className="grid md:grid-cols-4 gap-6 mb-8">
                     <Card>
-                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardHeader className="flex flex-row items-start justify-between pb-2">
                             <CardTitle className="text-sm font-medium">Total Donated</CardTitle>
                             <DollarSign className="w-4 h-4 text-amber-600" />
                         </CardHeader>
@@ -36,7 +36,7 @@ export default function DonorDashboardPage() {
                     </Card>
 
                     <Card>
-                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardHeader className="flex flex-row items-start justify-between pb-2">
                             <CardTitle className="text-sm font-medium">This Month</CardTitle>
                             <TrendingUp className="w-4 h-4 text-amber-600" />
                         </CardHeader>
@@ -47,7 +47,7 @@ export default function DonorDashboardPage() {
                     </Card>
 
                     <Card>
-                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardHeader className="flex flex-row items-start justify-between pb-2">
                             <CardTitle className="text-sm font-medium">Leaderboard Rank</CardTitle>
                             <Award className="w-4 h-4 text-amber-600" />
                         </CardHeader>
@@ -58,7 +58,7 @@ export default function DonorDashboardPage() {
                     </Card>
 
                     <Card>
-                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardHeader className="flex flex-row items-start justify-between pb-2">
                             <CardTitle className="text-sm font-medium">Pets Helped</CardTitle>
                             <Heart className="w-4 h-4 text-amber-600" />
                         </CardHeader>
