@@ -43,10 +43,8 @@ export async function GET(req: NextRequest) {
             });
 
             // Map database fields to UI-expected fields
-            applications = rawApplications.map(app => ({
+            applications = rawApplications.map((app: any) => ({
                 ...app,
-                reason: app.lifestyle, // Map lifestyle to reason
-                experience: '', // Not stored in current schema
                 housing: app.housingType, // Map housingType to housing
             }));
         } else {
@@ -60,10 +58,8 @@ export async function GET(req: NextRequest) {
             });
 
             // Map database fields to UI-expected fields
-            applications = rawApplications.map(app => ({
+            applications = rawApplications.map((app: any) => ({
                 ...app,
-                reason: app.lifestyle, // Map lifestyle to reason
-                experience: '', // Not stored in current schema
                 housing: app.housingType, // Map housingType to housing
             }));
         }
