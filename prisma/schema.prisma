@@ -1,14 +1,156 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// Lost1s Pet Shelter Management System
+// Database Schema for Adopters, Staff, and Donors
 
 generator client {
-  provider = "prisma-client"
-  output   = "../app/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// CORE MODELS
+// ============================================
+
+model Pet {
+  id          String   @id @default(cuid())
+  name        String
+  species     Species
+  breed       String?
+  age         AgeGroup
+  vaccinated  Boolean  @default(false)
+  spayed      Boolean  @default(false)
+  status      PetStatus @default(AVAILABLE)
+  intakeDate  DateTime @default(now())
+  imageUrl    String?
+  description String?
+  applications Application[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([status])
+  @@index([species])
+}
+
+model User {
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  password      String
+  role          UserRole @default(ADOPTER)
+  isBlacklisted Boolean  @default(false)
+  applications  Application[]
+  donations     Donation[]
+  securityLogs  SecurityLog[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([email])
+  @@index([role])
+}
+
+model Application {
+  id            String   @id @default(cuid())
+  pet           Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+  petId         String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String
+  housingType   String
+  hasYard       Boolean
+  lifestyle     String
+  annualIncome  Float
+  status        ApplicationStatus @default(REVIEW)
+  appointments  Appointment[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([petId])
+  @@index([userId])
+  @@index([status])
+}
+
+model Appointment {
+  id            String   @id @default(cuid())
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  applicationId String
+  date          DateTime
+  timeSlot      String
+  location      String
+  createdAt     DateTime @default(now())
+
+  @@unique([date, timeSlot, location])
+  @@index([applicationId])
+}
+
+model Donation {
+  id         String   @id @default(cuid())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+  amount     Float
+  frequency  DonationFrequency
+  type       DonationType
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model SecurityLog {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  incident  String
+  action    String
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+// ============================================
+// ENUMS
+// ============================================
+
+enum Species {
+  DOG
+  CAT
+  OTHER
+}
+
+enum AgeGroup {
+  PUPPY
+  ADULT
+  SENIOR
+}
+
+enum PetStatus {
+  AVAILABLE
+  PENDING
+  ADOPTED
+}
+
+enum UserRole {
+  ADOPTER
+  STAFF
+  DONOR
+}
+
+enum ApplicationStatus {
+  REVIEW
+  INTERVIEW
+  FINALIZED
+}
+
+enum DonationFrequency {
+  ONE_TIME
+  WEEKLY
+  MONTHLY
+}
+
+enum DonationType {
+  FOOD
+  MEDICAL
+  GENERAL
 }

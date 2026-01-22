@@ -5,7 +5,7 @@ A comprehensive web platform for digitizing pet adoption workflows, inventory ma
 ## Confirmed Choices
 
 - ✅ **ORM**: Prisma with PostgreSQL
-- ✅ **Authentication**: NextAuth.js with Google OAuth + Credentials Provider
+- ✅ **Authentication**: NextAuth.js with Credentials Provider (Email/Password)
 - ✅ **Database**: Neon PostgreSQL (cloud)
 - ✅ **Frontend Framework**: Next.js (App Router)
 - ✅ **Styling**: Tailwind CSS

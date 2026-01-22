@@ -1,8 +1,12 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Pawsome Theme - Warm Amber Colors */
+  --background: #FFFBEB; /* Amber-50 */
+  --foreground: #78350F; /* Amber-900 */
+  --primary: #D97706; /* Amber-600 */
+  --secondary: #92400E; /* Paw-brown */
+  --cream: #FEF3C7; /* Amber-100 */
 }
 
 @theme inline {
@@ -14,8 +18,8 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #78350F;
+    --foreground: #FFFBEB;
   }
 }
 
@@ -24,3 +28,4 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
