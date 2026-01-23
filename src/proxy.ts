@@ -34,9 +34,10 @@ export async function proxy(request: NextRequest) {
     // Role-based access control for portal routes
     if (token) {
         const role = token.role as string;
-        console.log(`[Middleware] Path: ${pathname}, User Role: ${role}`);
+        const additionalRole = token.additionalRole as string | null;
+        console.log(`[Middleware] Path: ${pathname}, User Role: ${role}, Additional Role: ${additionalRole}`);
 
-        if (pathname.startsWith('/adopter') && role !== 'ADOPTER') {
+        if (pathname.startsWith('/adopter') && role !== 'ADOPTER' && additionalRole !== 'ADOPTER') {
             console.log(`[Middleware] BLOCKING: ${role} trying to access /adopter`);
             return NextResponse.redirect(new URL('/', request.url));
         }
@@ -44,7 +45,7 @@ export async function proxy(request: NextRequest) {
             console.log(`[Middleware] BLOCKING: ${role} trying to access /staff`);
             return NextResponse.redirect(new URL('/', request.url));
         }
-        if (pathname.startsWith('/donor') && role !== 'DONOR') {
+        if (pathname.startsWith('/donor') && role !== 'DONOR' && additionalRole !== 'DONOR') {
             console.log(`[Middleware] BLOCKING: ${role} trying to access /donor`);
             return NextResponse.redirect(new URL('/', request.url));
         }

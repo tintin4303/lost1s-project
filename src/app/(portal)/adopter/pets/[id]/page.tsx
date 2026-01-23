@@ -43,8 +43,22 @@ export default function PetDetailPage({ params }: { params: Promise<{ id: string
         hasYard: false,
     });
 
+    // Schedule Logic
+    const [showScheduleForm, setShowScheduleForm] = useState(false);
+    const [scheduleData, setScheduleData] = useState({
+        date: '',
+        timeSlot: '',
+        location: 'Shelter Main Hall',
+        notes: ''
+    });
+    // const [mySchedules, setMySchedules] = useState<any[]>([]); // Unused
+    const [hasMeeting, setHasMeeting] = useState(false); // Confirmed or Completed meeting logic
+
     useEffect(() => {
-        fetchPet();
+        if (unwrappedParams.id) {
+            fetchPet();
+            fetchMySchedules();
+        }
     }, [unwrappedParams.id]);
 
     const fetchPet = async () => {
@@ -56,6 +70,56 @@ export default function PetDetailPage({ params }: { params: Promise<{ id: string
             console.error('Error fetching pet:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchMySchedules = async () => {
+        try {
+            const res = await fetch('/api/schedules');
+            const data = await res.json();
+            if (data.schedules) {
+                // setMySchedules(data.schedules);
+                // Check if we have a qualified meeting for THIS pet
+                const meeting = data.schedules.find((s: any) =>
+                    s.petId === unwrappedParams.id &&
+                    ['CONFIRMED', 'COMPLETED'].includes(s.status)
+                );
+                if (meeting) setHasMeeting(true);
+            }
+        } catch (e) {
+            console.error('Error fetching schedules', e);
+        }
+    };
+
+    const handleScheduleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setSubmitting(true);
+        setError('');
+
+        try {
+            const res = await fetch('/api/schedules', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    petId: unwrappedParams.id,
+                    ...scheduleData
+                })
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                setError(data.error || 'Failed to schedule');
+            } else {
+                setSuccess(true);
+                setTimeout(() => {
+                    setSuccess(false);
+                    setShowScheduleForm(false);
+                    fetchMySchedules(); // Refresh to update status
+                }, 2000);
+            }
+        } catch (err) {
+            setError('An error occurred');
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -167,17 +231,104 @@ export default function PetDetailPage({ params }: { params: Promise<{ id: string
                                 </div>
                             )}
 
-                            {!showApplicationForm && (
-                                <Button
-                                    className="w-full"
-                                    size="lg"
-                                    onClick={() => setShowApplicationForm(true)}
-                                >
-                                    Apply to Adopt {pet.name}
-                                </Button>
+                            {!showApplicationForm && !showScheduleForm && (
+                                <div className="space-y-3">
+                                    <Button
+                                        className="w-full"
+                                        size="lg"
+                                        disabled={!hasMeeting} // Block application if no meeting
+                                        onClick={() => setShowApplicationForm(true)}
+                                    >
+                                        {hasMeeting ? `Apply to Adopt ${pet.name}` : `Meet ${pet.name} First`}
+                                    </Button>
+
+                                    {!hasMeeting && (
+                                        <Button
+                                            className="w-full"
+                                            variant="outline"
+                                            size="lg"
+                                            onClick={() => setShowScheduleForm(true)}
+                                        >
+                                            <Calendar className="w-4 h-4 mr-2" />
+                                            Schedule a Meeting
+                                        </Button>
+                                    )}
+
+                                    {!hasMeeting && (
+                                        <p className="text-xs text-center text-gray-500">
+                                            * You must have a confirmed meeting before applying.
+                                        </p>
+                                    )}
+                                </div>
                             )}
                         </CardContent>
                     </Card>
+
+                    {/* Schedule Form */}
+                    {showScheduleForm && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Schedule a Meeting</CardTitle>
+                                <CardDescription>Pick a time to come meet {pet.name} at the shelter.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                {success ? (
+                                    <div className="text-center py-8">
+                                        <Check className="w-16 h-16 mx-auto mb-4 text-green-600" />
+                                        <h3 className="text-xl font-semibold mb-2">Request Sent!</h3>
+                                        <p className="text-gray-600">We will review your request shortly.</p>
+                                    </div>
+                                ) : (
+                                    <form onSubmit={handleScheduleSubmit} className="space-y-4">
+                                        {error && <div className="text-red-600 text-sm bg-red-50 p-2 rounded">{error}</div>}
+                                        <div className="space-y-2">
+                                            <Label>Date</Label>
+                                            <Input
+                                                type="date"
+                                                required
+                                                min={new Date().toISOString().split('T')[0]}
+                                                value={scheduleData.date}
+                                                onChange={e => setScheduleData({ ...scheduleData, date: e.target.value })}
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Time Slot</Label>
+                                            <select
+                                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                                required
+                                                value={scheduleData.timeSlot}
+                                                onChange={e => setScheduleData({ ...scheduleData, timeSlot: e.target.value })}
+                                            >
+                                                <option value="">Select a time...</option>
+                                                <option value="10:00 AM">10:00 AM</option>
+                                                <option value="11:00 AM">11:00 AM</option>
+                                                <option value="1:00 PM">01:00 PM</option>
+                                                <option value="2:00 PM">02:00 PM</option>
+                                                <option value="3:00 PM">03:00 PM</option>
+                                                <option value="4:00 PM">04:00 PM</option>
+                                            </select>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Location</Label>
+                                            <Input value={scheduleData.location} disabled />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Notes (Optional)</Label>
+                                            <Input
+                                                value={scheduleData.notes}
+                                                onChange={e => setScheduleData({ ...scheduleData, notes: e.target.value })}
+                                                placeholder="Any special questions?"
+                                            />
+                                        </div>
+                                        <div className="flex gap-3 pt-2">
+                                            <Button type="button" variant="outline" className="flex-1" onClick={() => setShowScheduleForm(false)}>Cancel</Button>
+                                            <Button type="submit" className="flex-1" disabled={submitting}>Request Meeting</Button>
+                                        </div>
+                                    </form>
+                                )}
+                            </CardContent>
+                        </Card>
+                    )}
 
                     {/* Application Form */}
                     {showApplicationForm && (

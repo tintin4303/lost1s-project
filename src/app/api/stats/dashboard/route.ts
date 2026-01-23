@@ -19,9 +19,9 @@ export async function GET() {
             where: { status: 'REVIEW' },
         });
 
-        // Get total adopters count
-        const totalAdopters = await prisma.user.count({
-            where: { role: 'ADOPTER' },
+        // Get pending schedules count
+        const pendingSchedules = await prisma.schedule.count({
+            where: { status: 'PENDING' },
         });
 
         // Get security alerts count (blacklisted users)
@@ -32,7 +32,7 @@ export async function GET() {
         return NextResponse.json({
             totalPets,
             pendingApplications,
-            totalAdopters,
+            pendingSchedules,
             securityAlerts,
         });
     } catch (error) {

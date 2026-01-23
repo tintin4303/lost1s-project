@@ -42,10 +42,22 @@ export async function GET(req: NextRequest) {
                 orderBy: { createdAt: 'desc' },
             });
 
-            // Map database fields to UI-expected fields
-            applications = rawApplications.map((app: any) => ({
-                ...app,
-                housing: app.housingType, // Map housingType to housing
+            // Attach linked schedule info
+            applications = await Promise.all(rawApplications.map(async (app: any) => {
+                const schedule = await prisma.schedule.findFirst({
+                    where: {
+                        userId: app.userId,
+                        petId: app.petId,
+                    },
+                    orderBy: { date: 'desc' },
+                    select: { status: true, date: true }
+                });
+
+                return {
+                    ...app,
+                    housing: app.housingType,
+                    linkedSchedule: schedule
+                };
             }));
         } else {
             // Users can only see their own applications
@@ -57,10 +69,9 @@ export async function GET(req: NextRequest) {
                 orderBy: { createdAt: 'desc' },
             });
 
-            // Map database fields to UI-expected fields
             applications = rawApplications.map((app: any) => ({
                 ...app,
-                housing: app.housingType, // Map housingType to housing
+                housing: app.housingType,
             }));
         }
 
@@ -96,22 +107,38 @@ export async function POST(req: NextRequest) {
         const body = await req.json();
         const validatedData = applicationSchema.parse(body);
 
-        // Check if user already has a pending application for this pet
-        // Temporarily disabled due to enum mismatch
-        // const existingApplication = await prisma.application.findFirst({
-        //     where: {
-        //         userId: session.user.id,
-        //         petId: validatedData.petId,
-        //         status: { in: ['REVIEW', 'APPROVED'] },
-        //     },
-        // });
+        // Check for required schedule (Meeting)
+        // Must have a CONFIRMED or COMPLETED meeting. PENDING is not enough.
+        const hasMeeting = await prisma.schedule.findFirst({
+            where: {
+                userId: session.user.id,
+                petId: validatedData.petId,
+                status: { in: ['CONFIRMED', 'COMPLETED'] }
+            }
+        });
 
-        // if (existingApplication) {
-        //     return NextResponse.json(
-        //         { error: 'You already have an active application for this pet' },
-        //         { status: 400 }
-        //     );
-        // }
+        if (!hasMeeting) {
+            return NextResponse.json(
+                { error: 'You must have a confirmed or completed meeting with this pet before applying.' },
+                { status: 400 }
+            );
+        }
+
+        // Check if user already has a pending application for this pet
+        const existingApplication = await prisma.application.findFirst({
+            where: {
+                userId: session.user.id,
+                petId: validatedData.petId,
+                status: { in: ['REVIEW', 'APPROVED'] },
+            },
+        });
+
+        if (existingApplication) {
+            return NextResponse.json(
+                { error: 'You already have an active application for this pet' },
+                { status: 400 }
+            );
+        }
 
         const application = await prisma.application.create({
             data: {

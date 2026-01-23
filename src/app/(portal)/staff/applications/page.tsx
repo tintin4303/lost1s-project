@@ -30,6 +30,10 @@ interface Application {
         name: string;
         email: string;
     };
+    linkedSchedule?: {
+        status: string;
+        date: string;
+    };
 }
 
 export default function StaffApplicationsPage() {
@@ -179,6 +183,17 @@ export default function StaffApplicationsPage() {
                                             {app.status}
                                         </span>
                                     </div>
+                                    {app.linkedSchedule && (
+                                        <div className="mt-2 flex items-center justify-end gap-2 text-xs">
+                                            <span className="text-gray-500">Linked Meeting:</span>
+                                            <span className={`px-2 py-0.5 rounded-full font-medium ${['CONFIRMED', 'COMPLETED'].includes(app.linkedSchedule.status)
+                                                    ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                                                    : 'bg-yellow-50 text-yellow-700 border border-yellow-200'
+                                                }`}>
+                                                {app.linkedSchedule.status} ({new Date(app.linkedSchedule.date).toLocaleDateString()})
+                                            </span>
+                                        </div>
+                                    )}
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -281,6 +296,6 @@ export default function StaffApplicationsPage() {
                     </div>
                 )}
             </div>
-        </div>
+        </div >
     );
 }

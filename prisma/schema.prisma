@@ -24,6 +24,7 @@ model Pet {
   imageUrl     String?
   description  String?
   applications Application[]
+  schedules    Schedule[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 
@@ -36,9 +37,11 @@ model User {
   name          String
   email         String        @unique
   password      String
-  role          String        @default("ADOPTER") // e.g., "ADOPTER", "STAFF", "DONOR"
+  role          String        @default("ADOPTER") // Primary Role (ADOPTER, STAFF)
+  additionalRole String?      // Optional Additional Role (e.g. DONOR)
   isBlacklisted Boolean       @default(false)
   applications  Application[]
+  schedules     Schedule[]
   donations     Donation[]
   securityLogs  SecurityLog[]
   createdAt     DateTime      @default(now())
@@ -59,7 +62,6 @@ model Application {
   housingType  String        // e.g., "HOUSE", "APARTMENT", "CONDO", "OTHER"
   hasYard      Boolean       // Has a yard
   status       String        @default("REVIEW") // e.g., "REVIEW", "APPROVED", "REJECTED"
-  appointments Appointment[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 
@@ -68,17 +70,25 @@ model Application {
   @@index([status])
 }
 
-model Appointment {
-  id            String      @id @default(cuid())
-  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-  applicationId String
-  date          DateTime
-  timeSlot      String
-  location      String
-  createdAt     DateTime    @default(now())
+// Replaces Appointment
+model Schedule {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  pet       Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+  petId     String
+  date      DateTime
+  timeSlot  String   // e.g., "10:00 AM", "2:00 PM"
+  location  String   // e.g., "Shelter Main Hall"
+  notes     String?  // Optional notes from adopter
+  status    String   @default("PENDING") // PENDING, CONFIRMED, COMPLETED, CANCELLED, REJECTED
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@unique([date, timeSlot, location])
-  @@index([applicationId])
+  @@unique([date, timeSlot, location]) // Prevent double booking same slot/location
+  @@index([userId])
+  @@index([petId])
+  @@index([status])
 }
 
 model Donation {

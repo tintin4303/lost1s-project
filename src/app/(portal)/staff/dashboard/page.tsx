@@ -3,14 +3,14 @@
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { PortalNav } from '@/src/components/layout/PortalNav';
-import { Heart, Users, FileCheck, AlertTriangle } from 'lucide-react';
+import { Heart, FileCheck, AlertTriangle, Calendar } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/src/components/ui/Card';
 import Link from 'next/link';
 
 interface DashboardStats {
     totalPets: number;
     pendingApplications: number;
-    totalAdopters: number;
+    pendingSchedules: number;
     securityAlerts: number;
 }
 
@@ -19,7 +19,7 @@ export default function StaffDashboardPage() {
     const [stats, setStats] = useState<DashboardStats>({
         totalPets: 0,
         pendingApplications: 0,
-        totalAdopters: 0,
+        pendingSchedules: 0,
         securityAlerts: 0,
     });
     const [loading, setLoading] = useState(true);
@@ -87,16 +87,16 @@ export default function StaffDashboardPage() {
 
                     <Card>
                         <CardHeader className="flex flex-row items-start justify-between pb-2">
-                            <CardTitle className="text-sm font-medium">Adopters</CardTitle>
-                            <div className="p-2 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors duration-200">
-                                <Users className="w-4 h-4 text-green-600 group-hover:scale-110 transition-transform duration-200" />
+                            <CardTitle className="text-sm font-medium">Pending Schedules</CardTitle>
+                            <div className="p-2 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors duration-200">
+                                <Calendar className="w-4 h-4 text-purple-600 group-hover:scale-110 transition-transform duration-200" />
                             </div>
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold text-amber-900 group-hover:text-amber-700 transition-colors duration-200">
-                                {loading ? '...' : stats.totalAdopters}
+                                {loading ? '...' : stats.pendingSchedules}
                             </div>
-                            <p className="text-xs text-gray-600">Registered</p>
+                            <p className="text-xs text-gray-600">Upcoming meetings</p>
                         </CardContent>
                     </Card>
 

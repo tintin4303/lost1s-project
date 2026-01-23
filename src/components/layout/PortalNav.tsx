@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
-import { LogOut, Heart, Users, Home as HomeIcon, Menu, X } from 'lucide-react';
+import { LogOut, Heart, Users, Home as HomeIcon, Menu, X, Calendar, User } from 'lucide-react';
 import { Button } from '@/src/components/ui/Button';
 
 export function PortalNav() {
@@ -13,25 +13,43 @@ export function PortalNav() {
     if (!session) return null;
 
     const role = session.user.role;
+    const additionalRole = (session.user as any).additionalRole;
+    // Combine primary and additional role into an array for easier checking
+    const roles: string[] = [role, additionalRole].filter(Boolean) as string[];
 
     const navLinks = {
         ADOPTER: [
             { href: '/adopter/discover', label: 'Discover Pets', icon: Heart },
             { href: '/adopter/applications', label: 'My Applications', icon: Users },
+            { href: '/adopter/schedules', label: 'My Schedules', icon: Calendar },
+            { href: '/adopter/profile', label: 'My Profile', icon: User },
         ],
         STAFF: [
             { href: '/staff/dashboard', label: 'Dashboard', icon: HomeIcon },
             { href: '/staff/pets', label: 'Manage Pets', icon: Heart },
             { href: '/staff/applications', label: 'Applications', icon: Users },
+            { href: '/staff/schedules', label: 'Schedules', icon: Calendar },
+            { href: '/staff/profile', label: 'My Profile', icon: User },
         ],
         DONOR: [
             { href: '/donor/dashboard', label: 'Dashboard', icon: HomeIcon },
             { href: '/donor/donate', label: 'Make Donation', icon: Heart },
             { href: '/donor/leaderboard', label: 'Leaderboard', icon: Users },
+            { href: '/donor/profile', label: 'My Profile', icon: User },
         ],
     };
 
-    const links = navLinks[role as keyof typeof navLinks] || [];
+    // Flatten links from all possessed roles
+    // Use Set to prevent duplicates if any, though checked logic makes it unlikely
+    const availableLinks = Object.entries(navLinks).flatMap(([key, links]) => {
+        if (roles.includes(key)) {
+            return links;
+        }
+        return [];
+    });
+
+    // Deduplicate links by href just in case
+    const links = Array.from(new Map(availableLinks.map(item => [item.href, item])).values());
 
     return (
         <nav className="bg-white border-b border-amber-200 shadow-sm sticky top-0 z-40 backdrop-blur-sm bg-white/95">
@@ -55,7 +73,7 @@ export function PortalNav() {
                                 </span>
                                 <span className="h-3 w-px bg-amber-200"></span>
                                 <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wide">
-                                    {role}
+                                    {roles.join(' | ')}
                                 </span>
                             </div>
 
@@ -66,7 +84,7 @@ export function PortalNav() {
                                 </span>
                                 <span className="h-3 w-px bg-amber-200"></span>
                                 <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wide">
-                                    {role}
+                                    {roles.join(' | ')}
                                 </span>
                             </div>
                         </div>

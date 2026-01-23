@@ -43,6 +43,7 @@ export const authOptions: NextAuthOptions = {
                     email: user.email,
                     name: user.name,
                     role: user.role,
+                    additionalRole: (user as any).additionalRole,
                 };
             },
         }),
@@ -52,7 +53,19 @@ export const authOptions: NextAuthOptions = {
             // Add user role to token on sign in
             if (user) {
                 token.role = (user as any).role;
-                token.id = user.id;
+                token.additionalRole = (user as any).additionalRole;
+                token.id = user.id as string;
+            } else if (token.id) {
+                // Fetch fresh data from DB to ensure roles are up-to-date
+                const freshUser = await prisma.user.findUnique({
+                    where: { id: token.id as string },
+                    select: { role: true, additionalRole: true }
+                });
+
+                if (freshUser) {
+                    token.role = freshUser.role;
+                    token.additionalRole = freshUser.additionalRole;
+                }
             }
             return token;
         },
@@ -60,6 +73,7 @@ export const authOptions: NextAuthOptions = {
             // Add role and id to session
             if (session.user) {
                 (session.user as any).role = token.role as string;
+                (session.user as any).additionalRole = token.additionalRole as string | null;
                 (session.user as any).id = token.id as string;
             }
             return session;
