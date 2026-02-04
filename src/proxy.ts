@@ -28,6 +28,8 @@ export async function proxy(request: NextRequest) {
             return NextResponse.redirect(new URL('/staff/dashboard', request.url));
         } else if (role === 'DONOR') {
             return NextResponse.redirect(new URL('/donor/dashboard', request.url));
+        } else if (role === 'ADMIN') {
+            return NextResponse.redirect(new URL('/admin/dashboard', request.url));
         }
     }
 
@@ -35,18 +37,61 @@ export async function proxy(request: NextRequest) {
     if (token) {
         const role = token.role as string;
         const additionalRole = token.additionalRole as string | null;
-        console.log(`[Middleware] Path: ${pathname}, User Role: ${role}, Additional Role: ${additionalRole}`);
 
         if (pathname.startsWith('/adopter') && role !== 'ADOPTER' && additionalRole !== 'ADOPTER') {
-            console.log(`[Middleware] BLOCKING: ${role} trying to access /adopter`);
+            // Log security event
+            await fetch(new URL('/api/internal/log-security', request.url), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId: token.id,
+                    incident: 'UNAUTHORIZED_ACCESS',
+                    action: `User ${token.name || token.email} [${role}] attempted to access /adopter`
+                })
+            }).catch(e => console.error('Failed to log unauthorized access:', e));
+
             return NextResponse.redirect(new URL('/', request.url));
         }
         if (pathname.startsWith('/staff') && role !== 'STAFF') {
-            console.log(`[Middleware] BLOCKING: ${role} trying to access /staff`);
+            // Log security event
+            await fetch(new URL('/api/internal/log-security', request.url), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId: token.id,
+                    incident: 'UNAUTHORIZED_ACCESS',
+                    action: `User ${token.name || token.email} [${role}] attempted to access /staff`
+                })
+            }).catch(e => console.error('Failed to log unauthorized access:', e));
+
             return NextResponse.redirect(new URL('/', request.url));
         }
         if (pathname.startsWith('/donor') && role !== 'DONOR' && additionalRole !== 'DONOR') {
-            console.log(`[Middleware] BLOCKING: ${role} trying to access /donor`);
+            // Log security event
+            await fetch(new URL('/api/internal/log-security', request.url), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId: token.id,
+                    incident: 'UNAUTHORIZED_ACCESS',
+                    action: `User ${token.name || token.email} [${role}] attempted to access /donor`
+                })
+            }).catch(e => console.error('Failed to log unauthorized access:', e));
+
+            return NextResponse.redirect(new URL('/', request.url));
+        }
+        if (pathname.startsWith('/admin') && role !== 'ADMIN') {
+            // Log security event
+            await fetch(new URL('/api/internal/log-security', request.url), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId: token.id,
+                    incident: 'UNAUTHORIZED_ACCESS',
+                    action: `User ${token.name || token.email} [${role}] attempted to access /admin`
+                })
+            }).catch(e => console.error('Failed to log unauthorized access:', e));
+
             return NextResponse.redirect(new URL('/', request.url));
         }
     }

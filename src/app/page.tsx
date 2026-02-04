@@ -34,8 +34,8 @@ export default function Home() {
               <span className="h-4 w-px bg-amber-200"></span>
               <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wide bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100">
                 {session.user.role}
-                {(session.user as any).additionalRole && (
-                  <> | {(session.user as any).additionalRole}</>
+                {session.user.additionalRole && (
+                  <> | {session.user.additionalRole}</>
                 )}
               </span>
             </div>

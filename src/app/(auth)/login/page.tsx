@@ -42,6 +42,8 @@ export default function LoginPage() {
                     window.location.href = '/staff/dashboard';
                 } else if (session?.user?.role === 'DONOR') {
                     window.location.href = '/donor/dashboard';
+                } else if (session?.user?.role === 'ADMIN') {
+                    window.location.href = '/admin/dashboard';
                 } else {
                     window.location.href = '/';
                 }

@@ -67,8 +67,8 @@ export default function DonorProfilePage() {
                                     <h3 className="text-sm font-medium text-gray-500 mb-1">Role</h3>
                                     <p className="text-lg font-bold text-amber-900">
                                         {session.user.role}
-                                        {(session.user as any).additionalRole && (
-                                            <span className="text-amber-700"> | {(session.user as any).additionalRole}</span>
+                                        {session.user.additionalRole && (
+                                            <span className="text-amber-700"> | {session.user.additionalRole}</span>
                                         )}
                                     </p>
                                 </div>
@@ -103,7 +103,7 @@ export default function DonorProfilePage() {
                                         <h4 className="font-semibold text-green-900">Adopter Portal</h4>
                                         <p className="text-sm text-green-700">Browse pets and manage applications.</p>
                                     </div>
-                                    {((session.user as any).role === 'ADOPTER' || (session.user as any).additionalRole === 'ADOPTER') ? (
+                                    {(session.user.role === 'ADOPTER' || session.user.additionalRole === 'ADOPTER') ? (
                                         <Button
                                             variant="outline"
                                             className="bg-green-100 text-green-700 border-green-200"

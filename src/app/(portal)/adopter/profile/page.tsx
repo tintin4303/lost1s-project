@@ -69,8 +69,8 @@ export default function AdopterProfilePage() {
                                     <h3 className="text-sm font-medium text-gray-500 mb-1">Role</h3>
                                     <p className="text-lg font-bold text-amber-900">
                                         {session.user.role}
-                                        {(session.user as any).additionalRole && (
-                                            <span className="text-amber-700"> | {(session.user as any).additionalRole}</span>
+                                        {session.user.additionalRole && (
+                                            <span className="text-amber-700"> | {session.user.additionalRole}</span>
                                         )}
                                     </p>
                                 </div>
@@ -120,7 +120,7 @@ export default function AdopterProfilePage() {
                                         <h4 className="font-semibold text-blue-900">Donor Portal</h4>
                                         <p className="text-sm text-blue-700">Make donations and view leaderboard.</p>
                                     </div>
-                                    {((session.user as any).role === 'DONOR' || (session.user as any).additionalRole === 'DONOR') ? (
+                                    {(session.user.role === 'DONOR' || session.user.additionalRole === 'DONOR') ? (
                                         <Button
                                             variant="outline"
                                             className="bg-blue-100 text-blue-700 border-blue-200"

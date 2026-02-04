@@ -16,35 +16,70 @@ export const authOptions: NextAuthOptions = {
                     throw new Error('Email and password are required');
                 }
 
-                // Find user by email
+                // 1. Try finding user by email
                 const user = await prisma.user.findUnique({
                     where: { email: credentials.email },
                 });
 
-                if (!user) {
-                    throw new Error('No user found with this email');
+                if (user) {
+                    // Check if user is blacklisted
+                    if (user.isBlacklisted) {
+                        throw new Error('Account has been suspended');
+                    }
+
+                    // Verify password
+                    const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
+
+                    if (!isPasswordValid) {
+                        // LOG: Failed Login Attempt
+                        await prisma.securityLog.create({
+                            data: {
+                                userId: user.id,
+                                incident: 'LOGIN_FAILURE',
+                                action: `User ${user.name} failed password attempt`,
+                                status: 'OPEN'
+                            }
+                        });
+                        throw new Error('Invalid password');
+                    }
+
+                    return {
+                        id: user.id,
+                        email: user.email,
+                        name: user.name,
+                        role: user.role,
+                        additionalRole: user.additionalRole,
+                    };
                 }
 
-                // Check if user is blacklisted
-                if (user.isBlacklisted) {
-                    throw new Error('Account has been suspended');
+                // 2. Try finding Admin by username (using email field as username input)
+                const admin = await prisma.admin.findUnique({
+                    where: { username: credentials.email },
+                });
+
+                if (admin) {
+                    const isPasswordValid = await bcrypt.compare(credentials.password, admin.password);
+                    if (!isPasswordValid) {
+                        // LOG: Admin Failed Login Attempt
+                        // Admins are not Users in this schema, so we can't link to `userId`.
+                        // However, the schema REQUIRES `userId`. 
+                        // We will skip logging for Admin entity failures for now to avoid schema violation,
+                        // or we need to relax the schema.
+                        // Given the instruction "triggers of security logs", 
+                        // I will skip this for the separate Admin entity since it has no `userId` linkage.
+                        throw new Error('Invalid password');
+                    }
+
+                    return {
+                        id: admin.id,
+                        email: `${admin.username}@admin.local`,
+                        name: admin.username,
+                        role: 'ADMIN',
+                        additionalRole: null,
+                    };
                 }
 
-                // Verify password
-                const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
-
-                if (!isPasswordValid) {
-                    throw new Error('Invalid password');
-                }
-
-                // Return user object (password excluded)
-                return {
-                    id: user.id,
-                    email: user.email,
-                    name: user.name,
-                    role: user.role,
-                    additionalRole: (user as any).additionalRole,
-                };
+                throw new Error('No user found');
             },
         }),
     ],
@@ -52,19 +87,26 @@ export const authOptions: NextAuthOptions = {
         async jwt({ token, user }) {
             // Add user role to token on sign in
             if (user) {
-                token.role = (user as any).role;
-                token.additionalRole = (user as any).additionalRole;
+                token.role = user.role;
+                token.additionalRole = user.additionalRole;
                 token.id = user.id as string;
             } else if (token.id) {
                 // Fetch fresh data from DB to ensure roles are up-to-date
-                const freshUser = await prisma.user.findUnique({
-                    where: { id: token.id as string },
-                    select: { role: true, additionalRole: true }
-                });
+                if (token.role === 'ADMIN') {
+                    const freshAdmin = await prisma.admin.findUnique({
+                        where: { id: token.id as string },
+                    });
+                    // Note: We don't update role here because Admin role is static 'ADMIN' and not in DB field
+                } else {
+                    const freshUser = await prisma.user.findUnique({
+                        where: { id: token.id as string },
+                        select: { role: true, additionalRole: true }
+                    });
 
-                if (freshUser) {
-                    token.role = freshUser.role;
-                    token.additionalRole = freshUser.additionalRole;
+                    if (freshUser) {
+                        token.role = freshUser.role;
+                        token.additionalRole = freshUser.additionalRole;
+                    }
                 }
             }
             return token;
@@ -72,9 +114,9 @@ export const authOptions: NextAuthOptions = {
         async session({ session, token }) {
             // Add role and id to session
             if (session.user) {
-                (session.user as any).role = token.role as string;
-                (session.user as any).additionalRole = token.additionalRole as string | null;
-                (session.user as any).id = token.id as string;
+                session.user.role = token.role;
+                session.user.additionalRole = token.additionalRole;
+                session.user.id = token.id;
             }
             return session;
         },

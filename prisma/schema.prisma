@@ -43,7 +43,9 @@ model User {
   applications  Application[]
   schedules     Schedule[]
   donations     Donation[]
-  securityLogs  SecurityLog[]
+  securityLogs  SecurityLog[] // Logs ABOUT this user
+  bannedBy      Admin?        @relation("AdminBan", fields: [bannedById], references: [id])
+  bannedById    String?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
@@ -110,8 +112,23 @@ model SecurityLog {
   userId    String
   incident  String
   action    String
+  status      String   @default("OPEN") // OPEN, REVIEWING, RESOLVED
+  resolvedAt  DateTime?
+  resolver    Admin?    @relation("SecurityResolver", fields: [resolverId], references: [id]) // RELINKED TO ADMIN
+  resolverId  String?
   createdAt DateTime @default(now())
 
   @@index([userId])
   @@index([createdAt])
+  @@index([status])
+}
+
+// NEW ADMIN ENTITY
+model Admin {
+  id           String        @id @default(cuid())
+  username     String        @unique
+  password     String
+  resolvedLogs SecurityLog[] @relation("SecurityResolver")
+  bannedUsers  User[]        @relation("AdminBan")
+  createdAt    DateTime      @default(now())
 }
