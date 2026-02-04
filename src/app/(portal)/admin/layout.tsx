@@ -17,18 +17,18 @@ export default function AdminLayout({
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col">
             {/* Admin Navbar */}
-            <nav className="bg-slate-900 text-white p-4 shadow-md z-10">
+            <nav className="bg-amber-900 text-white p-4 shadow-md z-10">
                 <div className="container mx-auto flex justify-between items-center">
-                    <Link href="/admin/dashboard" className="flex items-center gap-2 hover:text-red-100 transition-colors">
-                        <Shield className="h-6 w-6 text-red-500" />
-                        <span className="font-bold text-xl">Admin Console</span>
+                    <Link href="/admin/dashboard" className="flex items-center gap-2 hover:text-amber-200 transition-colors">
+                        <Shield className="h-6 w-6 text-amber-400" />
+                        <span className="font-bold text-xl">Lost1s Admin Console</span>
                     </Link>
                     <div className="flex items-center gap-4">
-                        <span className="text-sm text-slate-400">Logged in as {session.user?.name}</span>
+                        <span className="text-sm text-amber-200">Logged in as {session.user?.name}</span>
                         <Button
                             variant="ghost"
                             size="sm"
-                            className="text-white hover:bg-slate-800"
+                            className="text-white hover:bg-amber-800"
                             onClick={() => signOut({ callbackUrl: '/' })}
                         >
                             <LogOut className="h-4 w-4 mr-2" />

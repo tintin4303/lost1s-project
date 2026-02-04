@@ -15,6 +15,7 @@ export default function Home() {
     if (role === 'ADOPTER') return '/adopter/discover';
     if (role === 'STAFF') return '/staff/dashboard';
     if (role === 'DONOR') return '/donor/dashboard';
+    if (role === 'ADMIN') return '/admin/dashboard';
     return '/register';
   };
 

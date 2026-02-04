@@ -50,7 +50,7 @@ export default function DonorDonatePage() {
 
     if (success) {
         return (
-            <div className="min-h-screen bg-pink-50">
+            <div className="min-h-screen bg-slate-50">
                 <PortalNav />
                 <div className="container mx-auto px-4 py-16 text-center">
                     <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md mx-auto">
@@ -71,22 +71,22 @@ export default function DonorDonatePage() {
     }
 
     return (
-        <div className="min-h-screen bg-pink-50">
+        <div className="min-h-screen bg-slate-50">
             <PortalNav />
             <div className="container mx-auto px-4 py-8">
                 <div className="max-w-2xl mx-auto">
                     <div className="mb-8 text-center">
-                        <h1 className="text-4xl font-bold text-pink-900 mb-2">Make a Donation</h1>
+                        <h1 className="text-4xl font-bold text-slate-800 mb-2">Make a Donation</h1>
                         <p className="text-lg text-gray-600">Support our mission to find loving homes for every pet.</p>
                     </div>
 
                     <Card className="shadow-xl">
-                        <CardHeader className="bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-t-lg">
+                        <CardHeader className="bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-t-lg">
                             <CardTitle className="flex items-center gap-2">
                                 <Heart className="w-6 h-6 fill-current" />
                                 Donation Details
                             </CardTitle>
-                            <CardDescription className="text-pink-100">
+                            <CardDescription className="text-amber-100">
                                 Secure payment processing
                             </CardDescription>
                         </CardHeader>
@@ -101,8 +101,8 @@ export default function DonorDonatePage() {
                                                 type="button"
                                                 onClick={() => setAmount(val.toString())}
                                                 className={`py-3 rounded-lg border-2 font-semibold transition-all ${amount === val.toString()
-                                                        ? 'border-pink-500 bg-pink-50 text-pink-700'
-                                                        : 'border-gray-200 hover:border-pink-300 text-gray-600'
+                                                    ? 'border-amber-500 bg-amber-50 text-amber-700'
+                                                    : 'border-slate-200 hover:border-amber-300 text-slate-600'
                                                     }`}
                                             >
                                                 ${val}
@@ -151,7 +151,7 @@ export default function DonorDonatePage() {
                                 </div>
 
                                 <div className="bg-gray-50 p-4 rounded-lg flex items-start gap-3 text-sm text-gray-600">
-                                    <Gift className="w-5 h-5 text-pink-500 shrink-0 mt-0.5" />
+                                    <Gift className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
                                     <p>
                                         Your donation is tax-deductible. A receipt will be sent to your email address immediately after processing.
                                     </p>
@@ -159,7 +159,7 @@ export default function DonorDonatePage() {
 
                                 <Button
                                     type="submit"
-                                    className="w-full text-lg py-6 bg-pink-600 hover:bg-pink-700 shadow-lg hover:shadow-xl transition-all"
+                                    className="w-full text-lg py-6 bg-amber-600 hover:bg-amber-700 shadow-lg hover:shadow-xl transition-all"
                                     disabled={submitting || !amount}
                                 >
                                     {submitting ? 'Processing...' : `Donate ${amount ? '$' + amount : ''} Now`}

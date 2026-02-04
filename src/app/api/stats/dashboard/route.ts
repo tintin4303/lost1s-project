@@ -24,16 +24,21 @@ export async function GET() {
             where: { status: 'PENDING' },
         });
 
-        // Get security alerts count (blacklisted users)
-        const securityAlerts = await prisma.user.count({
-            where: { isBlacklisted: true },
+        // Get 5 recent applications
+        const recentApplications = await prisma.application.findMany({
+            take: 5,
+            orderBy: { createdAt: 'desc' },
+            include: {
+                pet: { select: { name: true, imageUrl: true } },
+                user: { select: { name: true, email: true } }
+            }
         });
 
         return NextResponse.json({
             totalPets,
             pendingApplications,
             pendingSchedules,
-            securityAlerts,
+            recentApplications,
         });
     } catch (error) {
         console.error('Error fetching dashboard stats:', error);
