@@ -127,7 +127,7 @@ export default function DonorDonatePage() {
                                     <div className="space-y-2">
                                         <Label>Campaign / Type</Label>
                                         <select
-                                            className="w-full h-12 rounded-md border border-gray-200 px-3"
+                                            className="w-full h-12 rounded-md border border-gray-200 px-3 text-slate-900"
                                             value={type}
                                             onChange={(e) => setType(e.target.value)}
                                         >
@@ -140,7 +140,7 @@ export default function DonorDonatePage() {
                                     <div className="space-y-2">
                                         <Label>Frequency</Label>
                                         <select
-                                            className="w-full h-12 rounded-md border border-gray-200 px-3"
+                                            className="w-full h-12 rounded-md border border-gray-200 px-3 text-slate-900"
                                             value={frequency}
                                             onChange={(e) => setFrequency(e.target.value)}
                                         >
